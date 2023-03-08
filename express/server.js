@@ -1,7 +1,9 @@
+'use strict';
 const express = require("express")
 const cors = require("cors")
 const crypto = require('crypto')
 const bodyParser = require('body-parser')
+const serverless = require('serverless-http')
 const {
     AptosAccount,
     AptosClient,
@@ -10,7 +12,8 @@ const {
 
 const app = express()
 const path = __dirname + '/views/'
-const PORT = process.env.PORT || 5000
+
+const router = express.Router()
  
 app.use(cors())
 app.use(express.json())
@@ -59,7 +62,7 @@ const transfer = async (to, amount) => {
     return tx.hash
 }
 
-app.post('/flips', async function (req, res) {
+router.post('/flips', async function (req, res) {
     console.log(req.body)
 
     const wallet = req.body.wallet
@@ -109,8 +112,11 @@ app.post('/flips', async function (req, res) {
     }
 })
 
+app.use('/.netlify/functions/server', router);
+
 app.get('*', function (req, res) {
     res.sendFile(path + 'index.html')
 })
- 
-app.listen(PORT, () => console.log(`Server running at port {PORT}`))
+
+module.exports = app;
+module.exports.handler = serverless(app);
